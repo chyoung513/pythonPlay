@@ -1,0 +1,27 @@
+f = None
+try:
+    f = open('../output/test.txt', 'w')
+except FileNotFoundError:
+    print('파일을 찾을 수 없습니다.')
+else:
+    f.write("파일에 저장합니다. 저장되었습니다.\n잘 저장되었겠죠?")
+finally:
+    if f != None:
+        f.close()
+
+
+def readFile(f):
+    print('----- 전체 파일 읽기')
+    print(f.read())
+
+def readFilePartial(f):
+    print('----- 파일중 일부만 읽어오기')
+    lines = f.readlines()
+    sys.stdout.writelines(lines[:1])
+
+import sys
+f = open('../output/test.txt', 'r')
+readFile(f)
+f.seek(0)
+readFilePartial(f)
+f.close()
