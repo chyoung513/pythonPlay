@@ -1,0 +1,191 @@
+﻿
+		
+1. 실습 준비
+	1) sql 파일 실행
+		source 파일명.sql
+
+2. SELECT
+	1) 기본 문법
+		SELECT 필드명 ... FROM 테이블명
+		SELECT * FROM 테이블명
+		
+		//한줄 주석
+		/* 여러줄 주석 */
+		
+		// 필드의 가공처리
+		SELECT empno, ename, sal + 100 FROM scott_emp
+		
+		// 필드의 alias
+		SELECT empno, ename, sal as '급여' FROM scott_emp
+		SELECT empno, ename '이름', sal FROM scott_emp
+		
+		//중복 제거 : distinct
+		SELECT distinct job FROM scott_emp
+	
+	2) 확장 문법
+		2-1) 정렬기능 : ORDER BY 필드명, [필드명, ...] [ASC | DESC]
+			// 급여가 많은 순으로 이름, 급여, 부서코드 조회
+			SELECT ename, sal, deptno FROM scott_emp order by sal DESC
+			
+			// 부서별로 급여가 적은순으로 이름, 급여, 부서코드 조회
+			SELECT ename, sal, deptno FROM scott_emp ORDER BY deptno, sal
+			
+		2-2) 조건 기능(레코드 필터링) : WHERE 조건문
+			// 급여가 3000이상인 직원의 사번, 이름, 급여를 조회
+			SELECT empno, ename, sal FROM scott_emp where sal > 3000
+			
+			// 업무가 manager인 직원의 이름, 부서, 업무, 급여 조회
+			SELECT ename, deptno, job, sal FROM scott_emp WHERE job = 'manager'
+			
+			// 부서가 20이고 업무가 analyst인 직원의 이름, 부서, 업무, 급여 조회
+			SELECT ename, deptno, job, sal FROM scott_emp WHERE deptno = 20 and job = 'analyst'
+			
+			// 급여가 1500이상 2500미만을 받는 직원의 이름, 부서, 업무, 급여를 조회
+			// 단 급여가 많은 순으로 정렬 (mysql에서만 사용되는 연산자 : BETWEEN)
+			SELECT ename, deptno, job, sal FROM scott_emp WHERE (sal > 1500 AND sal < 2500) ORDER BY sal DESC
+			
+			// 1982년 1월 1일 이후에 입사한 직원의 이름, 업무, 입사일자 조회
+			SELECT ename, job, hiredate FROM scott_emp WHERE hiredate > '1982-01-01'
+			
+			// 업무가 clerk, salesman, analyst인 직원의 이름, 부서, 업무, 급여 조회
+			SELECT ename, deptno, job, sal FROM scott_emp WHERE job = 'clerk' or job = 'salesman' or job = 'analyst'
+			SELECT ename, deptno, job, sal FROM scott_emp WHERE job IN ('clerk' ,'salesman', 'analyst')
+			
+			// 커미션이 없는 직원의 이름, 부서, 업무, 급여, 커미션을 조회
+			SELECT ename, deptno, job, sal, comm FROM scott_emp WHERE comm IS NULL
+			SELECT ename, deptno, job, sal, comm FROM scott_emp WHERE job != 'SALESMAN'
+			
+			// 커미션을 받는 직원
+			SELECT ....FROM scott_emp WHERE comm IS NOT NULL
+			SELECT ....FROM scott_emp WHERE comm > 0
+			
+			// like연산자
+			// % : 0개 이상의 문자를 대체
+			// _ : 1개 이상의 문자를 대체
+			
+			// 이름이 s로 시작하는 직원의 이름, 업무, 급여를 조회
+			SELECT ename, job, sal FROM scott_emp WHERE ename LIKE 's%';
+			
+		3) 문제
+			- 1981년에 입사한 사람의 이름, 업무, 입사일자 조회
+			- 업무가 manager, clerk, analyst가 아닌 직원의 이름, 업무, 급여, 부서번호 조회
+			- 업무가 president 또는 salesman이고 급여가 1500인 직원의 이름, 급여, 업무, 부서번호
+			- 가장 최근에 입사한 직원의 이름, 부서, 업무, 입사일자 조회
+			- 같은 부서내에서 같은 업무를 하는 직원의 급여가 많은 순으로 조회
+			- 커미션이 급여보다 10%이상 많은 직원의 이름, 부서, 업무, 급여, 커미션 조회
+			- 이름에 L자가 2개 있고 30번 부서이거나 직속상사가 7782인 직원의 이름, 부서, 직속상사 조회
+			
+			
+			- SELECT ename, job, hiredate FROM scott_emp WHERE hiredate LIKE '1981%';     / BETWEEN '1981-1-1' AND '1981-12-31'
+			- SELECT ename, job, sal, deptno FROM scott_emp WHERE job not in ('manager', 'clerk', 'analyst');
+			- SELECT ename, sal, job, deptno FROM scott_emp WHERE job in ('president', 'salesman') AND sal = 1500;
+			- SELECT ename, deptno, job, hiredate FROM scott_emp ORDER BY hiredate DESC LIMIT 1;
+			- SELECT ename, deptno, job, sal FROM scott_emp ORDER BY deptno, job, sal DESC;
+			- SELECT ename, deptno, job, sal, comm FROM scott_emp WHERE comm > (sal * 0.1);
+			- SELECT ename, deptno, mgr FROM scott_emp WHERE ename LIKE '%L%L%' AND (deptno = 30 OR mgr = 7782);
+			
+		4) 함수
+			- Single-Row Function(단일행 함수)
+				String Function
+					SELECT substr('921231234567', 7, 1)
+					SELECT instr('MILLER', 'L')   //문자의 시작위치를 알려줌, 찾는 문자가 없는 경우 0을 반환
+					
+					SELECT replace('MILLER', 'L', '*')	SELECT replace('JACK and JUE', 'J', 'BL')
+					
+					SELECT ascii('B')  char(97)
+				Numeric Function
+					SELECT round(456.678, 2)			SELECT round(456.789, -2)
+					SELECT truncate(1.678, 1)   //위치를 기준으로 무조건 버림
+					SELECT floor(1.678)			//무조건 버림
+					SELECT ceil(1.234)
+				Date Function
+					SELECT now()
+					SELECT DATE_ADD(now(), interval 31 day)
+					SELECT ADDDATE('2018-12-2', interval 31 day)
+					SELECT ADDDATE('2018-12-2', interval 2 year)
+					SELECT ADDDATE('2018-12-2', 31)                //기본 default가 31
+					
+					SELECT DATEDIFF(now(), '2018-11-28')            // 날짜와 날짜 간격을 계산
+					SELECT DATE_SUB(now(), interval 15 day)			//현재에서 15일 뺀 날짜
+					
+					SELECT LAST_DAY(now())
+			- Aggregate Function(다중행 함수)
+				avg(), sum(), count(), max(), min()
+				
+				// 업무가 salesman인 직원들의 급여평균, 최고액, 최저액, 합계를 조회
+				SELECT avg(sal), max(sal), min(sal), sum(sal) FROM scott_emp WHERE job = 'salesman';
+				
+				SELECT count(empno) FROM scott_emp;                 **! null값은 카운트를 안함
+				
+			- coalesce()
+			// 현재 직원들의 사번, 이름, 급여, 커미션, 총급여를 조회
+			SELECT empno, ename, sal, comm, (sal + coalesce(comm, 0)) as '총급여' FROM scott_emp;
+
+			- case문
+				// 업무가 salesman이면 영업사원이라고 하고 그외는 사원이라고 조회
+				SELECT empno,ename, sal,
+					CASE
+						WHEN job = 'salesman' THEN '영업사원'
+						ELSE '사원'
+					END AS '사원구분'
+				FROM scott_emp
+
+				// 부서번호가 10이면 총무부, 20이면 마케팅부, 30이면 영업부
+				SELECT empno, ename, sal,
+					CASE
+						WHEN deptno = 10 THEN '총무부'
+						WHEN deptno = 20 THEN '마케팅부'
+						WHEN deptno = 30 THEN '영업부'
+						ELSE '기타부서'
+					END AS '부서'
+				FROM scott_emp
+
+
+
+
+
+
+
+1. 오늘부터 12월 25일까지 몇일이 남았는가?
+SELECT DATEDIFF('2018-12-25', now());
+
+2. 현재까지 근무한 직원들의 근무일수를 몇주 몇일로
+조회.(단, 근무일수가 많은 사람 순으로 조회)
+SELECT empno, ename, deptno, CONCAT(DATEDIFF(now(), hiredate) DIV 7, '주', MOD(DATEDIFF(now(), hiredate), 7), '일') as '근무일수' FROM scott_emp ORDER BY DATEDIFF(now(), hiredate) DESC;
+
+3. 10번 부서 직원들 중 현재까지의 근무월수를 계산해서
+조회
+SELECT TIMESTAMPDIFF(MONTH, hiredate, now()) as '근무월수' FROM scott_emp WHERE deptno = 10;
+
+4. 20번 부서 직원들 중 입사일자로부터 13개월이 지난
+후의 날짜를 조회
+SELECT empno, ename, job, ADDDATE(hiredate, interval 13 month) FROM scott_emp WHERE deptno = 20;
+
+5. 모든 직원에 대해 입사한 달의 근무일수를 조회
+SELECT empno, ename, job, hiredate, DATEDIFF(LAST_DAY(hiredate), hiredate) as '첫달근무일수' FROM scott_emp;
+
+6. 현재 급여에 15%가 증가된 급여를 계산하여 사번,
+이름, 급여, 증가된 급여를 조회
+(단, 급여는 반올림하여 적용한다.)
+SELECT empno, ename, sal, round(sal * 1.15) as '연봉인상' FROM scott_emp;
+
+7. 이름, 입사일, 입사일로부터 현재까지의 월수, 급여,
+급여 총계를 조회
+SELECT ename, hiredate, TIMESTAMPDIFF(MONTH, hiredate, now()) as '근무월수', sal, (sal + coalesce(comm, 0)) as '급여총계' FROM scott_emp; 
+
+8. 업무가 analyst이면 급여를 10%증가시키고 clerk이면
+15%, manager이면 20%증가 시켜서 이름, 업무, 급여,
+증가된 급여를 조회
+SELECT ename, job, sal,
+	CASE
+		WHEN job = 'analyst' THEN sal *1.1
+		WHEN job = 'manager' THEN sal * 1.2
+		WHEN job = 'clerk' THEN sal * 1.15
+		ELSE '미인상'
+	END AS '급여인상'
+FROM scott_emp;
+
+9. 이름의 첫글자가 k보다 크고 y보다 작은 직원의 이름,
+부서, 업무를 조회하시오.
+SELECT ename, deptno, job FROM scott_emp WHERE substr(ename, 1, 1) BETWEEN 'L' and 'z';
+				
