@@ -150,15 +150,22 @@
 	- SELECT ename, dname, scott_emp.deptno FROM scott_emp JOIN scott_dept ON scott_emp.deptno = scott_dept.deptno AND scott_emp.comm > 0;
 	- SELECT e1.ename, e1.hiredate, e2.ename '관리자 이름', e2.hiredate '관리자 입사일' FROM scott_emp e1 JOIN scott_emp e2 ON e1.mgr = e2.empno AND e1.hiredate < e2.hiredate; 
 	- SELECT empno, ename, job, scott_dept.deptno, dname FROM scott_emp JOIN scott_dept ON scott_emp.deptno = scott_dept.deptno AND scott_emp.empno NOT IN (SELECT DISTINCT COALESCE(mgr, 0) FROM scott_emp);
-	- SELECT tblBook.title, group_concat(tblBook.author) FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) >= 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
+	- SELECT tblBook.title, group_concat(tblBook.author) '작가명' FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) >= 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
 	
 	+ output은 다음과 같다.
 	+-------+------------------------------+
-	| title | group_concat(tblBook.author) |
+	| title | 작가명                       |
 	+-------+------------------------------+
 	| 문    | 박성우,최주현                |
 	| 바다  | 최주현,유은정                |
 	| 천국  | 박성우,최지은,최주현         |
 	+-------+------------------------------+
 	
-	- SELECT tblBook.title, group_concat(tblBook.author) FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) >= 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
+	- SELECT tblBook.title, group_concat(tblBook.author) '작가명' FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) > 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
+	
+	+ output은 다음과 같다.
+	+-------+----------------------+
+	| title | 작가명               |
+	+-------+----------------------+
+	| 천국  | 박성우,최지은,최주현 |
+	+-------+----------------------+
