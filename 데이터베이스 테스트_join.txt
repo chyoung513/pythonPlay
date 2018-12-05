@@ -1,0 +1,164 @@
+﻿JOIN
+1) 여러 개의 테이블을 병합하여 하난의 결과를 도출하기 위한 방법
+2) 종류
+	a) Cartesian Product Join (데카르트 곱)
+	
+	b) Equi Join
+		- 공통 필드의 레코드를 가져오는 방법(중복)
+		- INNER JOIN(중복제거)
+		
+	c) Outer Join
+		- INNER JOIN의 확장
+			INNER JOIN + 공통되지 않은 레코드도 가져옴
+		- 종류
+			LEFT OUTER JOIN
+			RIGHT OUTER JOIN
+			FULL OUTER JOIN (Mysql에서는 지원하지 않음)
+			
+	d) Non Equi JOIN
+		- 공통되지 않는 필드의 레코드를 가져오는 방법
+		
+	e) Self Join
+		- 서로 같은 테이블을 복제하여 조인 (테이블명이 동일하므로 별명은 필수로 작성해야 함)
+
+
+3) 집합 연산자를 이용한 방법
+	UNION, UNION ALL, INTERSECT(MYSQL X), EXCEPT(MYSQL X)
+		SELECT deptno FROM scott_emp
+		UNION
+		SELECT deptno FROM scott_dept;
+		
+		SELECT deptno FROM scott_emp
+		UNION ALL
+		SELECT deptno FROM scott_dept;
+
+
+4) 실습
+	CREATE TABLE tblA(
+		id int NOT NULL,
+		value int
+	);
+	INSERT INTO tblA VALUES(1, 10);
+	
+	CREATE TABLE tblB(
+		id int NOT NULL,
+		value int
+	);
+		
+	CREATE TABLE tblC(
+		id int NOT NULL,
+		value int
+	);
+	
+	INSERT INTO tblC VALUES(1, 10);
+	INSERT INTO tblC VALUES(2, 20);
+	INSERT INTO tblC VALUES(7, 70);
+	INSERT INTO tblC VALUES(8, 80);
+	INSERT INTO tblC VALUES(9, 90);
+		
+	a) INNER JOIN	
+		SELECT tblA.id, tblA.value FROM tblA INNER JOIN tblB ON tblA.id = tblB.id;
+		
+		SELECT tblA.id, tblA.value FROM tblA, tblB WHERE tblA.id = tblB.id;
+		
+		SELECT a.id, a.value FROM tblA a INNER JOIN tblB b ON a.id = b.id;
+		
+		
+		//직원의 사번, 이름, 업무, 부서번호, 부서명을 조회
+		SELECT emp.empno, emp.ename, emp.job, emp.deptno, dept.dname 
+		FROM scott_emp emp JOIN scott_dept dept 
+		ON emp.deptno = dept.deptno;
+		
+		// Salesman에 대해서 사번, 이름, 업무, 부서번호, 부서명 조회
+		SELECT empno, ename, job, scott_emp.deptno, dname
+		FROM scott_emp JOIN scott_dept
+		ON scott_emp.deptno = scott_dept.deptno AND job = 'SALESMAN';
+		
+		SELECT empno, ename, job, scott_emp.deptno, dname
+		FROM scott_emp JOIN scott_dept
+		ON scott_emp.deptno = scott_dept.deptno WHERE job = 'SALESMAN';
+		
+		// Newyork에서 근무하는 직원의 사번, 이름, 업무, 부서명 조회
+		SELECT empno, ename, job, scott_emp.deptno, dname
+		FROM scott_emp JOIN scott_dept
+		ON scott_emp.deptno = scott_dept.deptno AND loc = 'NEW YORK';
+			
+			
+	b) OUTER JOIN
+		SELECT a.id, a.value FROM tblA a LEFT OUTER JOIN tblB b ON a.id = b.id
+		SELECT b.id, b.value FROM tblA a RIGHT OUTER JOIN tblB b ON a.id = b.id
+		
+		// 직원들의 이름, 급여, 근무지를 조회
+		// 단, 부서명과 근무지는 모두 출력할 수 있도록 하시오.
+		SELECT ename, sal, dname, loc FROM scott_emp RIGHT OUTER JOIN scott_dept ON scott_emp.deptno = scott_dept.deptno;
+		
+		
+	c) Non Equi Join
+		// 직원들의 사번, 이름, 업무, 급여, 급여등급 조회
+		SELECT empno, ename, job, sal, grade
+		FROM scott_emp e INNER JOIN scott_salgrade s
+		ON e.sal > s.losal AND e.sal < hisal;
+		
+		
+	d) Self Join
+		// 직원의 사번, 이름, 업무, 관리자, 관리자 이름을 조회
+		SELECT e1.empno, e1.ename, e1.mgr, e2.ename '관리자명'
+		FROM scott_emp e1 INNER JOIN scott_emp e2
+		ON e1.mgr = e2.empno;
+		
+	e) 세개의 테이블 조인
+		SELECT a.id, a.value
+		FROM tblA a INNER JOIN tblB b
+		ON a.id = b.id
+		INNER JOIN tblC c ON b.id = c.id;
+		
+		SELECT a.id, a.value
+		FROM tblA a, tblB b, tblC c
+		WHERE a.id = b.id AND b.id = c.id;
+		
+		
+5) 연습문제
+	- 보너스를 받는 직원에 대해 이름, 부서명, 근무자 조회
+	- 각 직원들에 대해 그들의 관리자보다 먼저 입사한 직원의 이름, 입사일, 관리자 이름, 관리자 입사일을 조회
+	- 말단사원의 사번, 이름, 업무, 부서번호, 근무지를 조회
+	- 테이블 생성
+		CREATE TABLE tblBook(
+			author	varchar(20),
+			title	varchar(20)
+		);
+
+		INSERT INTO tblBook VALUES('최주현', '하늘과 땅');
+		INSERT INTO tblBook VALUES('최주현', '바다');
+		INSERT INTO tblBook VALUES('유은정', '바다');
+		INSERT INTO tblBook VALUES('박성우', '문');
+		INSERT INTO tblBook VALUES('최주현', '문');
+		INSERT INTO tblBook VALUES('박성우', '천국');
+		INSERT INTO tblBook VALUES('최지은', '천국');
+		INSERT INTO tblBook VALUES('최주현', '천국');
+		INSERT INTO tblBook VALUES('박성우', '고슴도치');
+		INSERT INTO tblBook VALUES('서금동', '나');
+		
+		한 권의 책에 대해 두 명 이상의 작가가 쓴 책을 검색
+		책이름   작가명    작가명
+		------------------------
+		
+		한권의 책에 대해 세명의 작가가 쓴 책을 검색
+		책이름   작가명    작가명   작가명
+		-----------------------------------			
+	
+	
+	- SELECT ename, dname, scott_emp.deptno FROM scott_emp JOIN scott_dept ON scott_emp.deptno = scott_dept.deptno AND scott_emp.comm > 0;
+	- SELECT e1.ename, e1.hiredate, e2.ename '관리자 이름', e2.hiredate '관리자 입사일' FROM scott_emp e1 JOIN scott_emp e2 ON e1.mgr = e2.empno AND e1.hiredate < e2.hiredate; 
+	- SELECT empno, ename, job, scott_dept.deptno, dname FROM scott_emp JOIN scott_dept ON scott_emp.deptno = scott_dept.deptno AND scott_emp.empno NOT IN (SELECT DISTINCT COALESCE(mgr, 0) FROM scott_emp);
+	- SELECT tblBook.title, group_concat(tblBook.author) FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) >= 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
+	
+	+ output은 다음과 같다.
+	+-------+------------------------------+
+	| title | group_concat(tblBook.author) |
+	+-------+------------------------------+
+	| 문    | 박성우,최주현                |
+	| 바다  | 최주현,유은정                |
+	| 천국  | 박성우,최지은,최주현         |
+	+-------+------------------------------+
+	
+	- SELECT tblBook.title, group_concat(tblBook.author) FROM tblBook JOIN (SELECT title FROM tblBook GROUP BY title HAVING COUNT(*) >= 2) a ON tblBook.title = a.title GROUP BY tblBook.title; 
