@@ -1,0 +1,368 @@
+MongoDB
+1) 서버 실행
+	- DB 경로 
+		mongod.exe -> c:\data\db
+		mongod.exe --dbpath 'DB path'
+		
+2) 클라이언트 접속
+	mongo
+	
+3) 기본 명령
+	- 데이터베이스 조회 : 최소 collection이 1개 이상 존재하는 db
+		show dbs
+	
+	- 데이터베이스로 이동, 생성
+		use db명
+		
+	- 현재 collection 조회
+		show collections
+		
+	- 현재 db조회
+		db
+	
+	- 데이터베이스 삭제
+		삭제할 db로 이동
+		db.dropDatabase()
+
+4) Collection 생성
+	db.createCollection('collection명', [opotion])
+		- capped : boolean
+			이 값을 true로 설정하면 capped collection을 활성화 시킨다.
+			capped collection이란 고정된 크기를 가진 컬렉션으로 size가 초과되면 가장 오래된 데이터를 덮어쓴다.
+			이 값을 true로 설정하면 반드시 size옵션도 설정해야 한다.
+		- size : number
+			capped collection을 위해 해당 컬렉션의 최대 크기를 byte로 지정
+		- autoIndex : boolean
+			이 값을 true로 설정하면 _ID필드에 index를 자동으로 생성
+			기본값은 false
+			참고로 4.0에서는 인식 불가
+		- max : number
+			해당 컬렉션에 추가될 수 있는 최대 갯수를 설정
+			
+	db.createCollection('books')
+	
+	//collection에 document입력
+	db.books.insert({'name': 'book1'})
+	
+	// 조회
+	db.books.find()
+	
+	//collection에 document입력
+	db.books.insert({'name': 'book1', 'author': 'peter'})
+	
+	db.books.insert([{'name': 'book1', 'author': 'peter'}, 
+					{'name': 'pooh', 'author': 'pooh'}])
+					
+	db.books.insert({'name':'disney', 'author':'disney', 'seller': ['교보', '영풍']})
+	
+	db.books.remove({'name': 'book1'})
+	
+	// collection 삭제
+	db.books.drop()
+	
+	
+	
+	db.articles.insert([
+	{
+		"title" : "article01",
+		"content" : "content01",
+		"writer" : "Velopert",
+		"likes" : 0,
+		"comments" : [ ]
+	},
+	{
+		"title" : "article02",
+		"content" : "content02",
+		"writer" : "Alpha",
+		"likes" : 23,
+		"comments" : [
+				{
+						"name" : "Bravo",
+						"message" : "Hey Man!"
+				}
+		]
+	},
+	{
+		"title" : "article03",
+		"content" : "content03",
+		"writer" : "Bravo",
+		"likes" : 40,
+		"comments" : [
+				{
+						"name" : "Charlie",
+						"message" : "Hey Man!"
+				},
+				{
+						"name" : "Delta",
+						"message" : "Hey Man!"
+				}
+		]
+	}
+	])
+	
+	****************************************************
+	- writer값이 'Velopert'인 document조회
+		db.articles.find({writer: 'Velopert'}).pretty()
+		
+		>>> output 
+		{
+			"_id" : ObjectId("5c09ef678abe5204d206598b"),
+			"title" : "article01",
+			"content" : "content01",
+			"writer" : "Velopert",
+			"likes" : 0,
+			"comments" : [ ]
+		}
+		
+	- likes값이 30이하인 document 조회
+		db.articles.find({likes: {$lte: 30}}).pretty()
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c09ef678abe5204d206598b"),
+			"title" : "article01",
+			"content" : "content01",
+			"writer" : "Velopert",
+			"likes" : 0,
+			"comments" : [ ]
+		}
+		{
+			"_id" : ObjectId("5c09ef678abe5204d206598c"),
+			"title" : "article02",
+			"content" : "content02",
+			"writer" : "Alpha",
+			"likes" : 23,
+			"comments" : [
+					{
+							"name" : "Bravo",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+	
+	
+	- likes값이 10보다 크고 30보다 작은 document조회
+		db.articles.find({likes: {$gt: 10, $lt: 30}}).pretty()
+	
+		>>> output
+		{
+			"_id" : ObjectId("5c09ef678abe5204d206598c"),
+			"title" : "article02",
+			"content" : "content02",
+			"writer" : "Alpha",
+			"likes" : 23,
+			"comments" : [
+					{
+							"name" : "Bravo",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+	
+	- writer값이 'Alpha' 또는 'Bravo'인 document 조회
+		db.articles.find({$or:[{writer: 'Alpha'}, {writer: 'Bravo'}]}) 
+		
+		db.articles.find({writer:{$in:['Alpha', 'Bravo']}).pretty()
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a633"),
+			"title" : "article02",
+			"content" : "content02",
+			"writer" : "Alpha",
+			"likes" : 23,
+			"comments" : [
+					{
+							"name" : "Bravo",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a634"),
+			"title" : "article03",
+			"content" : "content03",
+			"writer" : "Bravo",
+			"likes" : 40,
+			"comments" : [
+					{
+							"name" : "Charlie",
+							"message" : "Hey Man!"
+					},
+					{
+							"name" : "Delta",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+		
+		- writer값이 'Bravo'이거나 likes값이 10미만인 document조회
+		db.articles.find({$or: [{writer: 'Bravo'}, {likes: {$lt: 10}}]}).pretty()
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a632"),
+			"title" : "article01",
+			"content" : "content01",
+			"writer" : "Velopert",
+			"likes" : 0,
+			"comments" : [ ]
+		}
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a634"),
+			"title" : "article03",
+			"content" : "content03",
+			"writer" : "Bravo",
+			"likes" : 40,
+			"comments" : [
+					{
+							"name" : "Charlie",
+							"message" : "Hey Man!"
+					},
+					{
+							"name" : "Delta",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+	
+
+	**. Javascript 언어문법 사용 가능
+	- comment가 비어있는 document를 조회
+		db.articles.find({$where: 'this.comments.length == 0'}).pretty()
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a632"),
+			"title" : "article01",
+			"content" : "content01",
+			"writer" : "Velopert",
+			"likes" : 0,
+			"comments" : [ ]
+		}
+	
+	
+	**. $elemMatch 연산자 : Embeded Documents 배열을 쿼리할 때 사용
+	- comments 중에서 'Charlie'가 작성한 댓글이 있는 document 조회
+		db.articles.find(
+			{
+				comments:{$elemMatch:{name:'Charlie'}}
+			},
+			{
+				comments:{$elemMatch:{name:'Charlie'}}
+			}
+		).pretty();
+		
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a634"),
+			"comments" : [
+					{
+							"name" : "Charlie",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+		
+		
+		
+		db.articles.find(
+			{
+				comments:{$elemMatch:{name:'Charlie'}}
+			},
+			{                                                  // 출력할 option 필드 설정
+				comments:{$elemMatch:{name:'Charlie'}},
+				title: true
+			}
+		).pretty();
+		
+		
+		>>> output
+		{
+			"_id" : ObjectId("5c0a0a7f0bee3556fdf6a634"),
+			"title" : "article03",
+			"comments" : [
+					{
+							"name" : "Charlie",
+							"message" : "Hey Man!"
+					}
+			]
+		}
+		
+		
+		**. find()에서 활용할 수 있는 함수 : sort(), limit(), skip()
+		db.order.insert(
+		[
+			{ "_id": 1, "item": { "category": "cake", "type": "chiffon" }, "amount": 10 },
+			{ "_id": 2, "item": { "category": "cookies", "type": "chocolate chip" }, "amount": 50 },
+			{ "_id": 3, "item": { "category": "cookies", "type": "chocolate chip" }, "amount": 15 },
+			{ "_id": 4, "item": { "category": "cake", "type": "lemon" }, "amount": 30 },
+			{ "_id": 5, "item": { "category": "cake", "type": "carrot" }, "amount": 20 },
+			{ "_id": 6, "item": { "category": "brownies", "type": "blondie" }, "amount": 10 }
+		])
+
+
+
+		- _id을 이용해서 정렬하기
+			db.order.find().sort({_id: 1})     # 오름차순
+			db.order.find().sort({_id: 1})     # 내림차순
+			db.order.find().sort({amount: 1, _id:-1})
+			
+		- 출력할 데이터 갯수를 제한할때
+			db.order.find().limit(3)
+			
+		- 데이터를 원하는 갯수만큼 생략하고 출력
+			db.order.find().skip(2)
+			
+		- 응용예제
+			order를 최신순으로한 페이지당 2개씩 출력
+			
+				var showPage = function(page){
+					return db.order.find().sort({_id: -1}).skip((page-1)*2).limit(2);
+				}
+				
+				
+6) 수정
+
+db.people.insert([
+	{ name: "Abet", age: 19 },
+	{ name: "Betty", age: 20 },
+	{ name: "Charlie", age: 23, skills: [ "mongodb", "nodejs"] },
+	{ name: "David", age: 23, score: 20 }
+])
+
+1) 특정 field를 업데이트 하기
+	- Abet의 age를 20살로 변경
+		db.people.update({name: 'Abet'}, {$set: {age: 20}})
+	
+	- Bettyd의 이름을 Betty 2nd로 수정
+		db.people.update({name: 'Bettyd'}, {name: 'Betty 2nd', age: 21})
+		
+2) 특정 field를 삭제
+	- David의 score라는 field를 삭제(1은 true의 뜻)
+		db.people.update({name: 'David'}, {$unset: {score:1}})  #1은 true
+		
+3) 특정 field를 추가
+	- Elly의 나이(age)를 17로 추가
+	(criteria에 해당되는 document가 없을 경우 새로 추가하는 방법)
+		db.people.update({name: 'Elly'}, {name: 'Elly', age: 17}, {upsert: true})
+		
+4) 여러 document의 특정 field를 수정하기
+	- age가 20보다 낮거나 같은 document의 score를 10을 설정
+		db.people.update({age: {$lte: 20}}, {$set: {score: 10}}, {multi: true})
+		
+5) 배열에 값 추가하기
+	- Charlie document의 skills배열에 'node.js' 추가
+		db.people.update({name: 'Charlie'}, {$push: {skills: 'node.js'}})
+		
+	- Charlie의 skills에 'C++'과 'Python'을 추가하고 알파벳 순으로 정렬
+		db.people.update(
+			{name: 'Charlie'}, {$push: {skills: {$each: ['c++', 'Python'], $sort: 1}}}
+		)
+		
+6) 벼열에 값 제거하기 
+	- Charlie의 skills값의 'node.js' 제거
+		db.people.update({name: 'Charlie'}, {$pull: {skills: 'node.js'}})
+	- Charlie에서 skills 배열 중 R과 keras를 제거
+		db.people.update({name: 'Charlie'}, {$pull: {skills: {$in: ['c++', 'Python']}}})
